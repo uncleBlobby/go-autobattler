@@ -24,6 +24,7 @@ var enemySpawnCooldown float32 = 2
 var gameTime float32 = 0
 
 var showLevelUpScreen bool = false
+var gameOver bool = false
 
 type ProjectileOwnership int
 
@@ -66,6 +67,7 @@ type Player struct {
 	expToLevel        int32
 	expToPrevLevel    int32
 	level             int32
+	pickupRadius      float32
 }
 
 type Enemy struct {
@@ -142,6 +144,14 @@ func DrawLevelUpScreen() {
 	}
 }
 
+func DrawGameOverScreen() {
+	screenColor := rl.LightGray
+	screenColor.A = uint8(128)
+	rl.DrawRectangle(50, 50, 1920-100, 1080-100, screenColor)
+
+	rl.DrawText("GAME OVER!!!!", 800, 500, 60, rl.Black)
+}
+
 func (p *Player) Draw() {
 	rl.DrawRectangle(int32(p.position.X), int32(p.position.Y), p.size, p.size, rl.Blue)
 
@@ -156,9 +166,12 @@ func (p *Player) Draw() {
 
 	healthFillPerc := float32((float32(p.hitpoints) / float32(100)))
 
+	redHeight := healthFillPerc * 100
+	whiteHeight := 100 - redHeight
+
 	UNUSED(healthFillPerc)
 
-	rl.DrawRectangle(12, 902, 16, 100-(p.hitpoints), rl.RayWhite)
+	rl.DrawRectangle(12, 902, 16, int32(whiteHeight), rl.RayWhite)
 
 	// exp bar
 
@@ -231,8 +244,8 @@ func (p *Player) Update(dt float32) {
 				}
 			}
 			//fmt.Println(closest)
-			// p.Shoot(closest)
-			UNUSED(closest)
+			p.Shoot(closest)
+			// UNUSED(closest)
 		}
 
 		p.timeSinceLastShot = 0
@@ -244,7 +257,15 @@ func (p *Player) Update(dt float32) {
 		p.level += 1
 		p.expToPrevLevel = p.expToLevel
 		p.expToLevel = p.level * p.expToLevel
+		p.shootCooldown = 1 - (float32(p.level-1) * 0.15)
+		//p.shootCooldown = float32(math.Min(float64(p.shootCooldown)))
+		p.shootCooldown = float32(math.Max(float64(p.shootCooldown), 0.1))
+		p.pickupRadius += 10
 		showLevelUpScreen = true
+	}
+
+	if p.hitpoints <= 0 {
+		gameOver = true
 	}
 }
 
@@ -328,6 +349,7 @@ func main() {
 		expToLevel:     100,
 		expToPrevLevel: 0,
 		hitpoints:      100,
+		pickupRadius:   75,
 	}
 
 	enemy := Enemy{
@@ -361,13 +383,7 @@ func main() {
 		rl.DrawText(fmt.Sprintf("PLAYER_HP:\t%d", player.hitpoints), 5, 25, 16, rl.Black)
 		// rl.DrawText(fmt.Sprintf("ENTITIES:\t%d", ), 5, 5, 16, rl.Black)
 
-		if showLevelUpScreen {
-			DrawLevelUpScreen()
-			// rl.EndDrawing()
-			// continue
-		}
-
-		if !showLevelUpScreen {
+		if !showLevelUpScreen && !gameOver {
 			player.Update(dt)
 			//enemy.Update(dt)
 
@@ -375,6 +391,17 @@ func main() {
 
 			for i := 0; i < len(loot); i++ {
 				if !loot[i].collected {
+
+					// move toward player if within wider pickup radius
+
+					if rl.CheckCollisionCircles(loot[i].position, loot[i].radius, player.center, player.pickupRadius) {
+						dir := rl.Vector2Subtract(player.center, loot[i].position)
+						dir = rl.Vector2Normalize(dir)
+
+						loot[i].position.X += (250 * dir.X) * dt
+						loot[i].position.Y += (250 * dir.Y) * dt
+					}
+
 					if rl.CheckCollisionCircleRec(loot[i].position, loot[i].radius, player.collider) {
 						loot[i].collected = true
 						player.exp += int32(loot[i].xpValue)
@@ -432,7 +459,15 @@ func main() {
 				for j := 0; j < len(enemies); j++ {
 					if projectiles[i].owner == PLAYER {
 						if rl.CheckCollisionCircleRec(projectiles[i].position, projectiles[i].radius, enemies[j].collider) {
-							projectiles[i].isDead = true
+
+							// random chance for a CRIT (bullet doesn't die, but instead penetrates)..
+
+							if rand.Float32() < 0.9 {
+								projectiles[i].isDead = true
+							} else {
+								critText := CreateFloatingCRITText(enemies[j].position)
+								fcts = append(fcts, &critText)
+							}
 
 							enemies[j].hitpoints -= 10
 
@@ -455,6 +490,14 @@ func main() {
 
 		}
 
+		// draw all the loots
+
+		for i := 0; i < len(loot); i++ {
+			if !loot[i].collected {
+				rl.DrawCircleV(loot[i].position, loot[i].radius, loot[i].color)
+			}
+		}
+
 		player.Draw()
 		//enemy.Draw()
 
@@ -467,14 +510,6 @@ func main() {
 
 		for i := 0; i < len(enemies); i++ {
 			enemies[i].Draw()
-		}
-
-		// draw all the loots
-
-		for i := 0; i < len(loot); i++ {
-			if !loot[i].collected {
-				rl.DrawCircleV(loot[i].position, loot[i].radius, loot[i].color)
-			}
 		}
 
 		// draw floating texts
@@ -494,6 +529,16 @@ func main() {
 			c := fcts[i].color
 			c.A = uint8(255 * (fcts[i].lifetime / fcts[i].totalLifetime))
 			rl.DrawText(fcts[i].text, int32(currentPos.X), int32(currentPos.Y), int32(fontSize), c)
+		}
+
+		if showLevelUpScreen {
+			DrawLevelUpScreen()
+			// rl.EndDrawing()
+			// continue
+		}
+
+		if gameOver {
+			DrawGameOverScreen()
 		}
 
 		rl.EndDrawing()
@@ -583,6 +628,27 @@ func CreateFloatingText(startPos rl.Vector2, damage int) FloatingText {
 		lifetime:      1,
 		totalLifetime: 1,
 		startSize:     40,
+		endSize:       10,
+		color:         rl.Black,
+		velocity:      rl.Vector2{X: 0, Y: -40},
+	}
+
+	// randX := rand.Intn(int(startPos.X)-10, int(startPos.X)+10)
+	// randX := rand.Int()
+	randX := rand.Intn(25) - 25
+
+	ft.basePosition.X += float32(randX)
+
+	return ft
+}
+
+func CreateFloatingCRITText(startPos rl.Vector2) FloatingText {
+	ft := FloatingText{
+		basePosition:  rl.Vector2{X: startPos.X, Y: startPos.Y - 25},
+		text:          ("CRIT"),
+		lifetime:      1,
+		totalLifetime: 1,
+		startSize:     80,
 		endSize:       10,
 		color:         rl.Black,
 		velocity:      rl.Vector2{X: 0, Y: -40},
