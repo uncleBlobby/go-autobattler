@@ -19,7 +19,9 @@ var enemies = []*Enemy{}
 var fcts = []*FloatingText{}
 var loot = []*Loot{}
 var enemySpawnTimer float32 = 0
-var enemySpawnCooldown float32 = 2
+var enemySpawnCooldown float32 = 1
+
+var showLevelUpScreen bool = false
 
 type ProjectileOwnership int
 
@@ -122,6 +124,22 @@ type Actor struct {
 	isDead    bool
 }
 
+func DrawLevelUpScreen() {
+
+	screenColor := rl.LightGray
+	screenColor.A = uint8(128)
+	rl.DrawRectangle(50, 50, 1920-100, 1080-100, screenColor)
+
+	rl.DrawText("LEVEL UP!!!!", 800, 500, 60, rl.Black)
+	rl.DrawText("pick some new skills or something...", 820, 600, 20, rl.Black)
+
+	// rl.DrawRectangle(750, 900, 100, 100, rl.Orange)
+
+	if rl.IsKeyReleased(rl.KeyBackspace) {
+		showLevelUpScreen = false
+	}
+}
+
 func (p *Player) Draw() {
 	rl.DrawRectangle(int32(p.position.X), int32(p.position.Y), p.size, p.size, rl.Blue)
 
@@ -208,6 +226,7 @@ func (p *Player) Update(dt float32) {
 		p.level += 1
 		p.expToPrevLevel = p.expToLevel
 		p.expToLevel = p.level * p.expToLevel
+		showLevelUpScreen = true
 	}
 }
 
@@ -296,59 +315,68 @@ func main() {
 		rl.DrawText(fmt.Sprintf("FPS:\t\t\t%d", rl.GetFPS()), 5, 5, 16, rl.Black)
 		// rl.DrawText(fmt.Sprintf("ENTITIES:\t%d", ), 5, 5, 16, rl.Black)
 
-		player.Update(dt)
-		//enemy.Update(dt)
-
-		// update all loot
-
-		for i := 0; i < len(loot); i++ {
-			if !loot[i].collected {
-				if rl.CheckCollisionCircleRec(loot[i].position, loot[i].radius, player.collider) {
-					loot[i].collected = true
-					player.exp += int32(loot[i].xpValue)
-					ft := CreateFloatingEXPText(player.position, loot[i].xpValue)
-					fcts = append(fcts, &ft)
-				}
-			}
+		if showLevelUpScreen {
+			DrawLevelUpScreen()
+			// rl.EndDrawing()
+			// continue
 		}
 
-		// update all projectiles
+		if !showLevelUpScreen {
+			player.Update(dt)
+			//enemy.Update(dt)
 
-		for i := 0; i < len(projectiles); i++ {
-			projectiles[i].Update(dt)
+			// update all loot
 
-			if projectiles[i].owner == ENEMY {
-				//collision against player, disappear bullet
-				if rl.CheckCollisionCircleRec(projectiles[i].position, projectiles[i].radius, player.collider) {
-					projectiles[i].isDead = true
-
-					newFt := CreateFloatingText(player.position, 10)
-					fcts = append(fcts, &newFt)
-				}
-			}
-
-			for j := 0; j < len(enemies); j++ {
-				if projectiles[i].owner == PLAYER {
-					if rl.CheckCollisionCircleRec(projectiles[i].position, projectiles[i].radius, enemies[j].collider) {
-						projectiles[i].isDead = true
-
-						enemies[j].hitpoints -= 10
-
-						if enemies[j].hitpoints <= 0 {
-							enemies[j].isDead = true
-							lt := CreateLootExpItem(enemies[j].center)
-							loot = append(loot, &lt)
-						}
-
-						newFt := CreateFloatingText(enemies[j].position, 10)
-						fcts = append(fcts, &newFt)
+			for i := 0; i < len(loot); i++ {
+				if !loot[i].collected {
+					if rl.CheckCollisionCircleRec(loot[i].position, loot[i].radius, player.collider) {
+						loot[i].collected = true
+						player.exp += int32(loot[i].xpValue)
+						ft := CreateFloatingEXPText(player.position, loot[i].xpValue)
+						fcts = append(fcts, &ft)
 					}
 				}
 			}
-		}
 
-		for i := 0; i < len(enemies); i++ {
-			enemies[i].Update(dt)
+			// update all projectiles
+
+			for i := 0; i < len(projectiles); i++ {
+				projectiles[i].Update(dt)
+
+				if projectiles[i].owner == ENEMY {
+					//collision against player, disappear bullet
+					if rl.CheckCollisionCircleRec(projectiles[i].position, projectiles[i].radius, player.collider) {
+						projectiles[i].isDead = true
+
+						newFt := CreateFloatingText(player.position, 10)
+						fcts = append(fcts, &newFt)
+					}
+				}
+
+				for j := 0; j < len(enemies); j++ {
+					if projectiles[i].owner == PLAYER {
+						if rl.CheckCollisionCircleRec(projectiles[i].position, projectiles[i].radius, enemies[j].collider) {
+							projectiles[i].isDead = true
+
+							enemies[j].hitpoints -= 10
+
+							if enemies[j].hitpoints <= 0 {
+								enemies[j].isDead = true
+								lt := CreateLootExpItem(enemies[j].center, 10*player.level)
+								loot = append(loot, &lt)
+							}
+
+							newFt := CreateFloatingText(enemies[j].position, 10)
+							fcts = append(fcts, &newFt)
+						}
+					}
+				}
+			}
+
+			for i := 0; i < len(enemies); i++ {
+				enemies[i].Update(dt)
+			}
+
 		}
 
 		player.Draw()
@@ -423,7 +451,7 @@ func main() {
 		enemySpawnTimer += dt
 		if enemySpawnTimer > enemySpawnCooldown {
 			// spawn enemy
-			log.Printf("SHOULD SPAWN NEW ENEMY...")
+			// log.Printf("SHOULD SPAWN NEW ENEMY...")
 			enemies = append(enemies, SpawnEnemy(&player))
 
 			// reset timer
@@ -527,11 +555,11 @@ type Loot struct {
 	color     rl.Color
 }
 
-func CreateLootExpItem(spawnPos rl.Vector2) Loot {
+func CreateLootExpItem(spawnPos rl.Vector2, expValue int32) Loot {
 	gem := Loot{
 		position:  spawnPos,
 		radius:    8,
-		xpValue:   10,
+		xpValue:   int(expValue),
 		color:     rl.Green,
 		collected: false,
 	}
