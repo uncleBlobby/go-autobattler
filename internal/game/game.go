@@ -41,31 +41,12 @@ func InitGame() *Game {
 	return &Game{}
 }
 
-func (g *Game) Update(dt float32) {
-
-	gameTime += dt
-
-	wave := int(gameTime / 30)
-	enemySpawnCooldown = 2.0 - (float32(wave) * 0.2)
-	enemySpawnCooldown = float32(math.Max(float64(enemySpawnCooldown), 0.2))
-
+func (g *Game) Draw(dt float32) {
 	rl.BeginDrawing()
 	rl.ClearBackground(rl.RayWhite)
 
 	rl.DrawText(fmt.Sprintf("FPS:\t\t\t%d", rl.GetFPS()), 5, 5, 16, rl.Black)
 	rl.DrawText(fmt.Sprintf("PLAYER_HP:\t%d", player.hitpoints), 5, 25, 16, rl.Black)
-
-	if !showLevelUpScreen && !gameOver {
-		player.Update(dt)
-
-		UpdateAllLoot(dt)
-
-		EnemyCollisionLoop(dt)
-
-		ProjectileCollisionLoop(dt)
-
-		UpdateAllEnemies(dt)
-	}
 
 	DrawAllLoot()
 
@@ -86,6 +67,27 @@ func (g *Game) Update(dt float32) {
 	}
 
 	rl.EndDrawing()
+}
+
+func (g *Game) Update(dt float32) {
+
+	gameTime += dt
+
+	wave := int(gameTime / 30)
+	enemySpawnCooldown = 2.0 - (float32(wave) * 0.2)
+	enemySpawnCooldown = float32(math.Max(float64(enemySpawnCooldown), 0.2))
+
+	if !showLevelUpScreen && !gameOver {
+		player.Update(dt)
+
+		UpdateAllLoot(dt)
+
+		EnemyCollisionLoop(dt)
+
+		ProjectileCollisionLoop(dt)
+
+		UpdateAllEnemies(dt)
+	}
 
 	// clean up
 

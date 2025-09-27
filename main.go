@@ -7,6 +7,7 @@ import (
 	"math/rand"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
+	"github.com/uncleblobby/raylib-go-test/internal/game"
 )
 
 // type Game struct {
@@ -332,6 +333,22 @@ func SpawnEnemy(player *Player) *Enemy {
 }
 
 func main() {
+	rl.InitWindow(1920, 1080, "go atb")
+	defer rl.CloseWindow()
+
+	rl.SetTargetFPS(60)
+
+	game := game.InitGame()
+
+	for !rl.WindowShouldClose() {
+		dt := rl.GetFrameTime()
+
+		game.Update(dt)
+		game.Draw(dt)
+	}
+}
+
+func oldMain() {
 	rl.InitWindow(1920, 1080, "go atb")
 	defer rl.CloseWindow()
 
