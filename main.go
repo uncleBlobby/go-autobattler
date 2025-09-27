@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"math"
 	"math/rand"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
@@ -19,7 +20,8 @@ var enemies = []*Enemy{}
 var fcts = []*FloatingText{}
 var loot = []*Loot{}
 var enemySpawnTimer float32 = 0
-var enemySpawnCooldown float32 = 1
+var enemySpawnCooldown float32 = 2
+var gameTime float32 = 0
 
 var showLevelUpScreen bool = false
 
@@ -89,7 +91,7 @@ func (p *Player) Shoot(enemy *Enemy) {
 		direction: dirToTarget,
 		owner:     PLAYER,
 		radius:    3,
-		speed:     250,
+		speed:     500,
 	}
 
 	projectiles = append(projectiles, &proj)
@@ -143,6 +145,21 @@ func DrawLevelUpScreen() {
 func (p *Player) Draw() {
 	rl.DrawRectangle(int32(p.position.X), int32(p.position.Y), p.size, p.size, rl.Blue)
 
+	// health bar
+
+	rl.DrawRectangle(10, 900, 20, 100, rl.Red)
+	//rl.DrawRectangle(12, 902, 16, 96, rl.RayWhite)
+
+	// health bar  fill
+
+	// fill percentage == (player.hitpoints / player.maxHitPoints)
+
+	healthFillPerc := float32((float32(p.hitpoints) / float32(100)))
+
+	UNUSED(healthFillPerc)
+
+	rl.DrawRectangle(12, 902, 16, 100-(p.hitpoints), rl.RayWhite)
+
 	// exp bar
 
 	rl.DrawRectangle(10, 1000, 1900, 15, rl.Blue)
@@ -187,9 +204,9 @@ func (p *Player) Update(dt float32) {
 	}
 
 	if rl.IsKeyDown(rl.KeyLeftShift) {
-		p.speed = 300
+		p.speed = 500
 	} else {
-		p.speed = 100
+		p.speed = 300
 	}
 
 	p.position.X += (p.speed * p.direction.X) * dt
@@ -213,8 +230,9 @@ func (p *Player) Update(dt float32) {
 					closestDistance = distanceTo
 				}
 			}
-
-			p.Shoot(closest)
+			//fmt.Println(closest)
+			// p.Shoot(closest)
+			UNUSED(closest)
 		}
 
 		p.timeSinceLastShot = 0
@@ -228,6 +246,27 @@ func (p *Player) Update(dt float32) {
 		p.expToLevel = p.level * p.expToLevel
 		showLevelUpScreen = true
 	}
+}
+
+func (p *Player) GetKnockedBack(e *Enemy, dt float32) {
+
+	knockDirection := rl.Vector2Subtract(p.position, e.position)
+	knockDirection = rl.Vector2Normalize(knockDirection)
+
+	knockForce := 150
+
+	p.position.X += (float32(knockForce) * knockDirection.X) * dt
+	p.position.Y += (float32(knockForce) * knockDirection.Y) * dt
+}
+
+func (e *Enemy) GetKnockedBack(e2 *Enemy, dt float32) {
+	knockDirection := rl.Vector2Subtract(e.position, e2.position)
+	knockDirection = rl.Vector2Normalize(knockDirection)
+
+	knockForce := 150
+
+	e.position.X += (float32(knockForce) * knockDirection.X) * dt
+	e.position.Y += (float32(knockForce) * knockDirection.Y) * dt
 }
 
 func (e *Enemy) Update(dt float32) {
@@ -250,10 +289,10 @@ func (e *Enemy) Update(dt float32) {
 
 	e.timeSinceLastShot += dt
 
-	if e.timeSinceLastShot >= e.shootCooldown {
-		e.Shoot()
-		e.timeSinceLastShot = 0
-	}
+	// if e.timeSinceLastShot >= e.shootCooldown {
+	// 	//e.Shoot()
+	// 	e.timeSinceLastShot = 0
+	// }
 }
 
 func SpawnEnemy(player *Player) *Enemy {
@@ -280,7 +319,7 @@ func main() {
 	player := Player{
 		Actor: Actor{
 			position: rl.Vector2{X: 200, Y: 200},
-			speed:    100,
+			speed:    300,
 		},
 		size:           25,
 		shootCooldown:  1,
@@ -288,17 +327,18 @@ func main() {
 		level:          1,
 		expToLevel:     100,
 		expToPrevLevel: 0,
+		hitpoints:      100,
 	}
 
 	enemy := Enemy{
 		Actor: Actor{
 			position: rl.Vector2{X: 500, Y: 500},
-			speed:    75,
+			speed:    125,
 			center:   rl.Vector2{X: 500, Y: 500},
 		},
 		size:          25,
 		player:        &player,
-		shootCooldown: 0.01,
+		shootCooldown: 2,
 		hitpoints:     10,
 	}
 
@@ -307,12 +347,18 @@ func main() {
 	for !rl.WindowShouldClose() {
 
 		dt := rl.GetFrameTime()
+		gameTime += dt
+
+		wave := int(gameTime / 30)
+		enemySpawnCooldown = 2.0 - (float32(wave) * 0.2)
+		enemySpawnCooldown = float32(math.Max(float64(enemySpawnCooldown), 0.2))
 
 		rl.BeginDrawing()
 
 		rl.ClearBackground(rl.RayWhite)
 
 		rl.DrawText(fmt.Sprintf("FPS:\t\t\t%d", rl.GetFPS()), 5, 5, 16, rl.Black)
+		rl.DrawText(fmt.Sprintf("PLAYER_HP:\t%d", player.hitpoints), 5, 25, 16, rl.Black)
 		// rl.DrawText(fmt.Sprintf("ENTITIES:\t%d", ), 5, 5, 16, rl.Black)
 
 		if showLevelUpScreen {
@@ -337,6 +383,36 @@ func main() {
 					}
 				}
 			}
+
+			// check player collision with enemy..
+
+			for i := 0; i < len(enemies); i++ {
+				if rl.CheckCollisionRecs(enemies[i].collider, player.collider) {
+					// player take damage...
+
+					//fmt.Printf("enemies[i].timeSinceLastShot: %v", enemies[i].timeSinceLastShot)
+					if enemies[i].timeSinceLastShot >= enemies[i].shootCooldown {
+						fmt.Println("ENEMY DAMAGE PLAYER")
+						player.hitpoints -= 10
+						ft := CreateFloatingText(player.position, 10)
+						fcts = append(fcts, &ft)
+						enemies[i].timeSinceLastShot = 0
+					}
+
+					// player get bumped back
+
+					player.GetKnockedBack(enemies[i], dt)
+				}
+
+				for j := 0; j < len(enemies); j++ {
+					if rl.CheckCollisionRecs(enemies[i].collider, enemies[j].collider) {
+
+						enemies[j].GetKnockedBack(enemies[i], dt)
+					}
+				}
+			}
+
+			// enemies should bump each other out of the way too, without damage
 
 			// update all projectiles
 
@@ -452,7 +528,10 @@ func main() {
 		if enemySpawnTimer > enemySpawnCooldown {
 			// spawn enemy
 			// log.Printf("SHOULD SPAWN NEW ENEMY...")
-			enemies = append(enemies, SpawnEnemy(&player))
+
+			for range 5 {
+				enemies = append(enemies, SpawnEnemy(&player))
+			}
 
 			// reset timer
 			enemySpawnTimer = 0
@@ -564,4 +643,8 @@ func CreateLootExpItem(spawnPos rl.Vector2, expValue int32) Loot {
 		collected: false,
 	}
 	return gem
+}
+
+func UNUSED(a any) {
+	return
 }
