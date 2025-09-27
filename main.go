@@ -6,6 +6,9 @@ import (
 )
 
 func main() {
+	rl.InitAudioDevice()
+	rl.SetMasterVolume(1.0)
+
 	rl.InitWindow(1920, 1080, "go atb")
 	defer rl.CloseWindow()
 

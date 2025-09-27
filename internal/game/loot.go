@@ -47,7 +47,7 @@ func (m *Magnet) Pickup(player *Player) {
 
 	m.collected = true
 	player.buffs = append(player.buffs, Buff{
-		duration:             5,
+		duration:             2,
 		pickupRadiusBonus:    1000,
 		pickupRadiusOriginal: player.pickupRadius,
 	})

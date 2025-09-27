@@ -29,26 +29,37 @@ type Player struct {
 }
 
 func (p *Player) InitBaseWeapon() {
+
+	sfx := rl.LoadSound("assets/sounds/fixed.wav")
+
 	b := BaseWeapon{position: p.center, critChance: 0.5, cooldown: Cooldown{
 		timeSinceShot: 0,
 		duration:      2,
-	}}
+	},
+		soundEffect: sfx}
 	p.weapons = append(p.weapons, &b)
 }
 
 func (p *Player) InitShotgunWeapon() {
+
+	sfx := rl.LoadSound("assets/sounds/shotgun-firing.mp3")
+
 	s := Shotgun{position: p.center, critChance: 0.25, numProjectiles: 3, cooldown: Cooldown{
 		timeSinceShot: 0,
 		duration:      5,
-	}}
+	},
+		soundEffect: sfx}
 	p.weapons = append(p.weapons, &s)
 }
 
 func (p *Player) InitSMGWeapon() {
+
+	sfx := rl.LoadSound("assets/sounds/smg-firing.mp3")
+
 	s := SMG{position: p.center, critChance: 0.1, cooldown: Cooldown{
 		timeSinceShot: 0,
 		duration:      3,
-	}, magazineSize: 10, shotsFiredThisBurst: 0, rateOfFire: 0.01, timeSinceLastRound: 0}
+	}, magazineSize: 10, shotsFiredThisBurst: 0, rateOfFire: 0.01, timeSinceLastRound: 0, soundEffect: sfx}
 	p.weapons = append(p.weapons, &s)
 }
 

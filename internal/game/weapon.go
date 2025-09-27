@@ -17,9 +17,10 @@ type Weapon interface {
 }
 
 type BaseWeapon struct {
-	position   rl.Vector2
-	critChance float32
-	cooldown   Cooldown
+	position    rl.Vector2
+	critChance  float32
+	cooldown    Cooldown
+	soundEffect rl.Sound
 }
 
 func (b *BaseWeapon) Update(dt float32, position rl.Vector2) {
@@ -46,6 +47,8 @@ func (b *BaseWeapon) Shoot(enemy *Enemy) {
 
 		projectiles = append(projectiles, &proj)
 
+		rl.PlaySound(b.soundEffect)
+
 		b.cooldown.timeSinceShot = 0
 	}
 }
@@ -55,6 +58,7 @@ type Shotgun struct {
 	critChance     float32
 	cooldown       Cooldown
 	numProjectiles int
+	soundEffect    rl.Sound
 }
 
 type SMG struct {
@@ -65,6 +69,7 @@ type SMG struct {
 	shotsFiredThisBurst int
 	rateOfFire          float32
 	timeSinceLastRound  float32
+	soundEffect         rl.Sound
 }
 
 func (s *Shotgun) Update(dt float32, position rl.Vector2) {
@@ -105,6 +110,7 @@ func (s *Shotgun) Shoot(enemy *Enemy) {
 			projectiles = append(projectiles, &proj)
 		}
 
+		rl.PlaySound(s.soundEffect)
 		s.cooldown.timeSinceShot = 0
 	}
 }
@@ -136,6 +142,11 @@ func (s *SMG) Shoot(enemy *Enemy) {
 			}
 
 			projectiles = append(projectiles, &proj)
+
+			if !rl.IsSoundPlaying(s.soundEffect) {
+				rl.PlaySound(s.soundEffect)
+			}
+
 			s.shotsFiredThisBurst += 1
 			s.timeSinceLastRound = 0
 		}
