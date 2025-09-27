@@ -26,11 +26,15 @@ type Player struct {
 	pickupRadius      float32
 	weapons           []Weapon
 	buffs             []Buff
+	levelUpSfx        rl.Sound
+	expPickupSfx      rl.Sound
 }
 
 func (p *Player) InitBaseWeapon() {
 
 	sfx := rl.LoadSound("assets/sounds/fixed.wav")
+
+	rl.SetSoundVolume(sfx, 0.7)
 
 	b := BaseWeapon{position: p.center, critChance: 0.5, cooldown: Cooldown{
 		timeSinceShot: 0,
@@ -43,6 +47,7 @@ func (p *Player) InitBaseWeapon() {
 func (p *Player) InitShotgunWeapon() {
 
 	sfx := rl.LoadSound("assets/sounds/shotgun-firing.mp3")
+	rl.SetSoundVolume(sfx, 0.5)
 
 	s := Shotgun{position: p.center, critChance: 0.25, numProjectiles: 3, cooldown: Cooldown{
 		timeSinceShot: 0,
@@ -55,6 +60,7 @@ func (p *Player) InitShotgunWeapon() {
 func (p *Player) InitSMGWeapon() {
 
 	sfx := rl.LoadSound("assets/sounds/smg-firing.mp3")
+	rl.SetSoundVolume(sfx, 0.5)
 
 	s := SMG{position: p.center, critChance: 0.1, cooldown: Cooldown{
 		timeSinceShot: 0,
@@ -149,6 +155,7 @@ func (p *Player) Update(dt float32) {
 		p.shootCooldown = float32(math.Max(float64(p.shootCooldown), 0.1))
 		p.pickupRadius += 10
 		showLevelUpScreen = true
+		rl.PlaySound(p.levelUpSfx)
 	}
 
 	// update all weapons

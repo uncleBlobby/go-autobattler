@@ -24,6 +24,12 @@ var gameOver bool = false
 type Game struct{}
 
 func InitGame() *Game {
+	levelUpSfx := rl.LoadSound("assets/sounds/level-up-sequence.mp3")
+	xpPickupFx := rl.LoadSound("assets/sounds/retro-coin.mp3")
+
+	rl.SetSoundVolume(levelUpSfx, 0.9)
+	rl.SetSoundVolume(xpPickupFx, 0.4)
+
 	player = &Player{
 		Actor: Actor{
 			position: rl.Vector2{X: 200, Y: 200},
@@ -37,6 +43,8 @@ func InitGame() *Game {
 		expToPrevLevel: 0,
 		hitpoints:      100,
 		pickupRadius:   75,
+		levelUpSfx:     levelUpSfx,
+		expPickupSfx:   xpPickupFx,
 	}
 
 	player.InitBaseWeapon()

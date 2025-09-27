@@ -81,6 +81,7 @@ func UpdateAllLoot(dt float32) {
 			}
 
 			if rl.CheckCollisionCircleRec(loot[i].position, loot[i].radius, player.collider) {
+				rl.PlaySound(player.expPickupSfx)
 				loot[i].collected = true
 				player.exp += int32(loot[i].xpValue)
 				ft := CreateFloatingEXPText(player.position, loot[i].xpValue)
