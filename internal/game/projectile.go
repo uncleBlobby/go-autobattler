@@ -17,6 +17,7 @@ type Projectile struct {
 	radius         float32
 	isDead         bool
 	owner          ProjectileOwnership
+	critChance     float32
 }
 
 func (p *Projectile) Update(dt float32) {

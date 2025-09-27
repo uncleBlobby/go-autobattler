@@ -12,6 +12,7 @@ var projectiles = []*Projectile{}
 var enemies = []*Enemy{}
 var fcts = []*FloatingText{}
 var loot = []*Loot{}
+var magnets = []*Magnet{}
 var enemySpawnTimer float32 = 0
 var enemySpawnCooldown float32 = 2
 var gameTime float32 = 0
@@ -37,6 +38,10 @@ func InitGame() *Game {
 		hitpoints:      100,
 		pickupRadius:   75,
 	}
+
+	player.InitBaseWeapon()
+	player.InitShotgunWeapon()
+	player.InitSMGWeapon()
 
 	return &Game{}
 }
@@ -129,6 +134,12 @@ func CleanUpDeadEntities() {
 	for i := 0; i < len(loot); i++ {
 		if loot[i].collected {
 			loot = append(loot[:i], loot[i+1:]...)
+		}
+	}
+
+	for i := 0; i < len(magnets); i++ {
+		if magnets[i].collected {
+			magnets = append(magnets[:i], magnets[i+1:]...)
 		}
 	}
 }

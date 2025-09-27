@@ -6,6 +6,13 @@ import (
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
+type Buff struct {
+	duration             float32
+	timeSinceStart       float32
+	pickupRadiusBonus    float32
+	pickupRadiusOriginal float32
+}
+
 type Player struct {
 	Actor
 	shootCooldown     float32
@@ -17,24 +24,55 @@ type Player struct {
 	expToPrevLevel    int32
 	level             int32
 	pickupRadius      float32
+	weapons           []Weapon
+	buffs             []Buff
+}
+
+func (p *Player) InitBaseWeapon() {
+	b := BaseWeapon{position: p.center, critChance: 0.5, cooldown: Cooldown{
+		timeSinceShot: 0,
+		duration:      2,
+	}}
+	p.weapons = append(p.weapons, &b)
+}
+
+func (p *Player) InitShotgunWeapon() {
+	s := Shotgun{position: p.center, critChance: 0.25, numProjectiles: 3, cooldown: Cooldown{
+		timeSinceShot: 0,
+		duration:      5,
+	}}
+	p.weapons = append(p.weapons, &s)
+}
+
+func (p *Player) InitSMGWeapon() {
+	s := SMG{position: p.center, critChance: 0.1, cooldown: Cooldown{
+		timeSinceShot: 0,
+		duration:      3,
+	}, magazineSize: 10, shotsFiredThisBurst: 0, rateOfFire: 0.01, timeSinceLastRound: 0}
+	p.weapons = append(p.weapons, &s)
 }
 
 func (p *Player) Shoot(enemy *Enemy) {
-	if enemy == nil {
-		return
+	// if enemy == nil {
+	// 	return
+	// }
+
+	// dirToTarget := rl.Vector2Subtract(enemy.position, p.position)
+
+	// proj := Projectile{
+	// 	position:  p.center,
+	// 	direction: dirToTarget,
+	// 	owner:     PLAYER,
+	// 	radius:    3,
+	// 	speed:     500,
+	// }
+
+	// projectiles = append(projectiles, &proj)
+
+	for i := 0; i < len(p.weapons); i++ {
+		p.weapons[i].Shoot(enemy)
 	}
 
-	dirToTarget := rl.Vector2Subtract(enemy.position, p.position)
-
-	proj := Projectile{
-		position:  p.center,
-		direction: dirToTarget,
-		owner:     PLAYER,
-		radius:    3,
-		speed:     500,
-	}
-
-	projectiles = append(projectiles, &proj)
 }
 
 func (p *Player) Update(dt float32) {
@@ -67,31 +105,27 @@ func (p *Player) Update(dt float32) {
 	p.position.X += (p.speed * p.direction.X) * dt
 	p.position.Y += (p.speed * p.direction.Y) * dt
 
-	p.timeSinceLastShot += dt
-	if p.timeSinceLastShot >= p.shootCooldown {
+	if len(enemies) > 0 {
 
-		if len(enemies) > 0 {
+		// find closest enemy
 
-			// find closest enemy
+		closest := enemies[0]
+		closestDistance := rl.Vector2Distance(p.position, enemies[0].position)
 
-			closest := enemies[0]
-			closestDistance := rl.Vector2Distance(p.position, enemies[0].position)
+		for i := 0; i < len(enemies); i++ {
+			distanceTo := rl.Vector2Distance(p.position, enemies[i].position)
 
-			for i := 0; i < len(enemies); i++ {
-				distanceTo := rl.Vector2Distance(p.position, enemies[i].position)
-
-				if distanceTo < closestDistance {
-					closest = enemies[i]
-					closestDistance = distanceTo
-				}
+			if distanceTo < closestDistance {
+				closest = enemies[i]
+				closestDistance = distanceTo
 			}
-			//fmt.Println(closest)
-			p.Shoot(closest)
-			// UNUSED(closest)
 		}
-
-		p.timeSinceLastShot = 0
+		//fmt.Println(closest)
+		p.Shoot(closest)
+		// UNUSED(closest)
 	}
+
+	// p.timeSinceLastShot = 0
 
 	// check level up
 
@@ -104,6 +138,22 @@ func (p *Player) Update(dt float32) {
 		p.shootCooldown = float32(math.Max(float64(p.shootCooldown), 0.1))
 		p.pickupRadius += 10
 		showLevelUpScreen = true
+	}
+
+	// update all weapons
+
+	for i := 0; i < len(p.weapons); i++ {
+		p.weapons[i].Update(dt, p.position)
+	}
+
+	for i := 0; i < len(p.buffs); i++ {
+		p.buffs[i].timeSinceStart += dt
+		p.pickupRadius = p.buffs[i].pickupRadiusBonus
+
+		if p.buffs[i].timeSinceStart > p.buffs[i].duration {
+			p.pickupRadius = p.buffs[i].pickupRadiusOriginal
+			p.buffs = append(p.buffs[:i], p.buffs[i+1:]...)
+		}
 	}
 
 	if p.hitpoints <= 0 {

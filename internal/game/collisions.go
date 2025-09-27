@@ -55,7 +55,7 @@ func ProjectileCollisionLoop(dt float32) {
 
 					// random chance for a CRIT (bullet doesn't die, but instead penetrates)..
 
-					if rand.Float32() < 0.9 {
+					if rand.Float32() < projectiles[i].critChance {
 						projectiles[i].isDead = true
 					} else {
 						critText := CreateFloatingCRITText(enemies[j].position)
@@ -66,8 +66,14 @@ func ProjectileCollisionLoop(dt float32) {
 
 					if enemies[j].hitpoints <= 0 {
 						enemies[j].isDead = true
+						if rand.Float32() > 0.95 {
+							mg := CreateLootMagnetItem(enemies[j].center)
+							magnets = append(magnets, &mg)
+							continue
+						}
 						lt := CreateLootExpItem(enemies[j].center, 10*player.level)
 						loot = append(loot, &lt)
+
 					}
 
 					newFt := CreateFloatingText(enemies[j].position, 10)
