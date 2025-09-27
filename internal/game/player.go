@@ -1,0 +1,158 @@
+package game
+
+import (
+	"math"
+
+	rl "github.com/gen2brain/raylib-go/raylib"
+)
+
+type Player struct {
+	Actor
+	shootCooldown     float32
+	timeSinceLastShot float32
+	size              int32
+	hitpoints         int32
+	exp               int32
+	expToLevel        int32
+	expToPrevLevel    int32
+	level             int32
+	pickupRadius      float32
+}
+
+func (p *Player) Shoot(enemy *Enemy) {
+	if enemy == nil {
+		return
+	}
+
+	dirToTarget := rl.Vector2Subtract(enemy.position, p.position)
+
+	proj := Projectile{
+		position:  p.center,
+		direction: dirToTarget,
+		owner:     PLAYER,
+		radius:    3,
+		speed:     500,
+	}
+
+	projectiles = append(projectiles, &proj)
+}
+
+func (p *Player) Update(dt float32) {
+	p.center = rl.Vector2{X: p.position.X + float32(p.size/2), Y: p.position.Y + float32(p.size/2)}
+	p.collider = rl.Rectangle{X: p.position.X, Y: p.position.Y, Width: float32(p.size), Height: float32(p.size)}
+
+	p.direction = rl.Vector2{X: 0, Y: 0}
+	if rl.IsKeyDown(rl.KeyA) {
+		p.direction.X = -1
+	}
+
+	if rl.IsKeyDown(rl.KeyD) {
+		p.direction.X = 1
+	}
+
+	if rl.IsKeyDown(rl.KeyW) {
+		p.direction.Y = -1
+	}
+
+	if rl.IsKeyDown(rl.KeyS) {
+		p.direction.Y = 1
+	}
+
+	if rl.IsKeyDown(rl.KeyLeftShift) {
+		p.speed = 500
+	} else {
+		p.speed = 300
+	}
+
+	p.position.X += (p.speed * p.direction.X) * dt
+	p.position.Y += (p.speed * p.direction.Y) * dt
+
+	p.timeSinceLastShot += dt
+	if p.timeSinceLastShot >= p.shootCooldown {
+
+		if len(enemies) > 0 {
+
+			// find closest enemy
+
+			closest := enemies[0]
+			closestDistance := rl.Vector2Distance(p.position, enemies[0].position)
+
+			for i := 0; i < len(enemies); i++ {
+				distanceTo := rl.Vector2Distance(p.position, enemies[i].position)
+
+				if distanceTo < closestDistance {
+					closest = enemies[i]
+					closestDistance = distanceTo
+				}
+			}
+			//fmt.Println(closest)
+			p.Shoot(closest)
+			// UNUSED(closest)
+		}
+
+		p.timeSinceLastShot = 0
+	}
+
+	// check level up
+
+	if p.exp > p.expToLevel {
+		p.level += 1
+		p.expToPrevLevel = p.expToLevel
+		p.expToLevel = p.level * p.expToLevel
+		p.shootCooldown = 1 - (float32(p.level-1) * 0.15)
+		//p.shootCooldown = float32(math.Min(float64(p.shootCooldown)))
+		p.shootCooldown = float32(math.Max(float64(p.shootCooldown), 0.1))
+		p.pickupRadius += 10
+		showLevelUpScreen = true
+	}
+
+	if p.hitpoints <= 0 {
+		gameOver = true
+	}
+}
+
+func (p *Player) Draw() {
+	rl.DrawRectangle(int32(p.position.X), int32(p.position.Y), p.size, p.size, rl.Blue)
+
+	// health bar
+
+	rl.DrawRectangle(10, 900, 20, 100, rl.Red)
+	//rl.DrawRectangle(12, 902, 16, 96, rl.RayWhite)
+
+	// health bar  fill
+
+	// fill percentage == (player.hitpoints / player.maxHitPoints)
+
+	healthFillPerc := float32((float32(p.hitpoints) / float32(100)))
+
+	redHeight := healthFillPerc * 100
+	whiteHeight := 100 - redHeight
+
+	UNUSED(healthFillPerc)
+
+	rl.DrawRectangle(12, 902, 16, int32(whiteHeight), rl.RayWhite)
+
+	// exp bar
+
+	rl.DrawRectangle(10, 1000, 1900, 15, rl.Blue)
+	rl.DrawRectangle(15, 1002, 1890, 12, rl.RayWhite)
+
+	// exp bar fill
+
+	// fill percentage == (player.exp / player.expToLevel) * 100
+
+	fillPerc := ((float32(p.exp) - float32(p.expToPrevLevel)) / (float32(p.expToLevel) - float32(p.expToPrevLevel)))
+
+	rl.DrawRectangle(15, 1002, int32(1890*fillPerc), 12, rl.Blue)
+}
+
+func (p *Player) GetKnockedBack(e *Enemy, dt float32) {
+
+	knockDirection := rl.Vector2Subtract(p.position, e.position)
+	knockDirection = rl.Vector2Normalize(knockDirection)
+
+	knockForce := 150
+
+	p.position.X += (float32(knockForce) * knockDirection.X) * dt
+	p.position.Y += (float32(knockForce) * knockDirection.Y) * dt
+}
