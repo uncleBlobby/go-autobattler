@@ -12,6 +12,8 @@ type Loot struct {
 	xpValue   int
 	collected bool
 	color     rl.Color
+	// sprite    rl.Texture2D
+	anim AnimatedSprite
 }
 
 type Magnet struct {
@@ -21,13 +23,35 @@ type Magnet struct {
 	color     rl.Color
 }
 
+type AnimatedSprite struct {
+	sprite       rl.Texture2D
+	spriteSize   rl.Vector2
+	numFrames    int
+	frameSpeed   int
+	currentFrame int
+	frameCounter float32
+}
+
 func CreateLootExpItem(spawnPos rl.Vector2, expValue int32) Loot {
+
+	//sprite := rl.LoadTexture("assets/sprites/gem-green.png")
+
+	anim := AnimatedSprite{
+		sprite:       lootGemSpriteSheet,
+		spriteSize:   rl.Vector2{16, 16},
+		numFrames:    7,
+		frameSpeed:   7,
+		currentFrame: 0,
+		frameCounter: 0,
+	}
+
 	gem := Loot{
 		position:  spawnPos,
 		radius:    8,
 		xpValue:   int(expValue),
 		color:     rl.Green,
 		collected: false,
+		anim:      anim,
 	}
 	return gem
 }
@@ -56,7 +80,14 @@ func (m *Magnet) Pickup(player *Player) {
 func DrawAllLoot() {
 	for i := 0; i < len(loot); i++ {
 		if !loot[i].collected {
-			rl.DrawCircleV(loot[i].position, loot[i].radius, loot[i].color)
+			// rl.DrawCircleV(loot[i].position, loot[i].radius, loot[i].color)
+
+			src := rl.Rectangle{0, float32(loot[i].anim.currentFrame) * loot[i].anim.spriteSize.Y, loot[i].anim.spriteSize.X, loot[i].anim.spriteSize.Y}
+			dst := rl.Rectangle{loot[i].position.X, loot[i].position.Y, 32, 32}
+			og := rl.Vector2{dst.Width / 2, dst.Height / 2}
+
+			// rl.DrawTextureEx(loot[i].sprite, loot[i].position, 0, 1, rl.White)
+			rl.DrawTexturePro(loot[i].anim.sprite, src, dst, og, 0, rl.White)
 		}
 	}
 
@@ -71,6 +102,15 @@ func UpdateAllLoot(dt float32) {
 	for i := 0; i < len(loot); i++ {
 		if !loot[i].collected {
 			// move toward player if within wider pickup radius
+
+			loot[i].anim.frameCounter += dt
+			if loot[i].anim.frameCounter >= (1.0 / float32(loot[i].anim.frameSpeed)) {
+				loot[i].anim.frameCounter = 0
+				loot[i].anim.currentFrame++
+				if loot[i].anim.currentFrame >= loot[i].anim.numFrames {
+					loot[i].anim.currentFrame = 0
+				}
+			}
 
 			if rl.CheckCollisionCircles(loot[i].position, loot[i].radius, player.center, player.pickupRadius) {
 				dir := rl.Vector2Subtract(player.center, loot[i].position)
