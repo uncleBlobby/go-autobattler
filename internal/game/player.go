@@ -1,6 +1,7 @@
 package game
 
 import (
+	"fmt"
 	"math"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
@@ -230,6 +231,7 @@ func (p *Player) Draw() {
 	fillPerc := ((float32(p.exp) - float32(p.expToPrevLevel)) / (float32(p.expToLevel) - float32(p.expToPrevLevel)))
 
 	rl.DrawRectangle(15, 1002, int32(1890*fillPerc), 12, rl.Blue)
+	rl.DrawText(fmt.Sprintf("Level: %d", p.level), (1920/2)-50, 1004, 12, rl.Black)
 }
 
 func (p *Player) GetKnockedBack(e *Enemy, dt float32) {
