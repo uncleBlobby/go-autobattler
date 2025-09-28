@@ -18,6 +18,8 @@ var enemySpawnCooldown float32 = 2
 var gameTime float32 = 0
 var player *Player
 
+var skellyTex rl.Texture2D
+
 var showLevelUpScreen bool = false
 var gameOver bool = false
 
@@ -26,6 +28,8 @@ type Game struct{}
 func InitGame() *Game {
 	levelUpSfx := rl.LoadSound("assets/sounds/level-up-sequence.mp3")
 	xpPickupFx := rl.LoadSound("assets/sounds/retro-coin.mp3")
+
+	skellyTex = rl.LoadTexture("assets/sprites/skeleton.png")
 
 	rl.SetSoundVolume(levelUpSfx, 0.9)
 	rl.SetSoundVolume(xpPickupFx, 0.4)
@@ -52,6 +56,7 @@ func InitGame() *Game {
 	player.InitSMGWeapon()
 
 	InitMagicMissile(player)
+	InitFireball(player)
 
 	return &Game{}
 }

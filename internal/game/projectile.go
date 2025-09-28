@@ -1,6 +1,10 @@
 package game
 
-import rl "github.com/gen2brain/raylib-go/raylib"
+import (
+	"math"
+
+	rl "github.com/gen2brain/raylib-go/raylib"
+)
 
 type ProjectileOwnership int
 
@@ -29,6 +33,7 @@ type Projectile struct {
 	owner          ProjectileOwnership
 	critChance     float32
 	kind           ProjectileKind
+	sprite         rl.Texture2D
 }
 
 func NewProjectile(k ProjectileKind) *Projectile {
@@ -51,6 +56,14 @@ func (p *Projectile) Draw() {
 
 	switch p.kind {
 	case MAGIC_MISSILE:
+
+		src := rl.Rectangle{0, 0, 16, 16}
+		dst := rl.Rectangle{p.position.X, p.position.Y, 32, 32}
+		og := rl.Vector2{32 / 2, 32 / 2}
+
+		angle := math.Atan2(float64(p.direction.Y), float64(p.direction.X)) * rl.Rad2deg
+		// rl.DrawTextureEx(p.sprite, p.position, float32(angle-90), 2, rl.White)
+		rl.DrawTexturePro(p.sprite, src, dst, og, float32(angle-90), rl.White)
 		rl.DrawCircle(int32(p.position.X), int32(p.position.Y), p.radius, rl.SkyBlue)
 
 	case BULLET:
@@ -60,7 +73,14 @@ func (p *Projectile) Draw() {
 		rl.DrawCircle(int32(p.position.X), int32(p.position.Y), p.radius, rl.Black)
 
 	case FIREBALL:
-		rl.DrawCircle(int32(p.position.X), int32(p.position.Y), p.radius, rl.Black)
+		src := rl.Rectangle{0, 0, 16, 16}
+		dst := rl.Rectangle{p.position.X, p.position.Y, 32, 32}
+		og := rl.Vector2{32 / 2, 32 / 2}
+
+		angle := math.Atan2(float64(p.direction.Y), float64(p.direction.X)) * rl.Rad2deg
+		// rl.DrawTextureEx(p.sprite, p.position, float32(angle-90), 2, rl.White)
+		rl.DrawTexturePro(p.sprite, src, dst, og, float32(angle-90), rl.White)
+		rl.DrawCircle(int32(p.position.X), int32(p.position.Y), p.radius, rl.Red)
 
 	default:
 		rl.DrawCircle(int32(p.position.X), int32(p.position.Y), p.radius, rl.Black)

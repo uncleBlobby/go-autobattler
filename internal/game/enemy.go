@@ -9,6 +9,7 @@ type Enemy struct {
 	timeSinceLastShot float32
 	size              int32
 	hitpoints         int32
+	sprite            rl.Texture2D
 }
 
 func (e *Enemy) Update(dt float32) {
@@ -39,9 +40,12 @@ func (e *Enemy) Update(dt float32) {
 
 func (e *Enemy) Draw() {
 
-	//player body
+	//rl.DrawTexture(e.sprite, int32(e.position.X), int32(e.position.Y), rl.White)
 
-	rl.DrawRectangle(int32(e.position.X), int32(e.position.Y), e.size, e.size, rl.Red)
+	rl.DrawTextureEx(e.sprite, e.position, 0, 2, rl.White)
+
+	// fallback to draw rectangle if sprite doesn't work..
+	//rl.DrawRectangle(int32(e.position.X), int32(e.position.Y), e.size, e.size, rl.Red)
 
 }
 
@@ -58,15 +62,19 @@ func DrawAllEnemies() {
 }
 
 func SpawnEnemy(player *Player) *Enemy {
+
+	
+
 	enemy := Enemy{
 		Actor: Actor{
 			position: PositionJustOutsideScreen(),
 			speed:    75,
 		},
-		size:          25,
+		size:          16,
 		player:        player,
 		shootCooldown: 2,
 		hitpoints:     10,
+		sprite:        skellyTex,
 	}
 
 	return &enemy

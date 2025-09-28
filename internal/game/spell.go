@@ -18,12 +18,28 @@ type MagicMissile struct {
 	owner            ProjectileOwnership
 	projectileRadius float32
 	projectileSpeed  float32
+	sprite           rl.Texture2D
+}
+
+type Fireball struct {
+	spellLevel       int
+	critChance       float32
+	cooldown         Cooldown
+	soundEffect      rl.Sound
+	textName         string
+	baseDamage       int
+	owner            ProjectileOwnership
+	projectileRadius float32
+	projectileSpeed  float32
+	sprite           rl.Texture2D
 }
 
 func InitMagicMissile(p *Player) {
 
 	sfx := rl.LoadSound("assets/sounds/magic-1.wav")
 	rl.SetSoundVolume(sfx, 0.7)
+
+	mmSprite := rl.LoadTexture("assets/sprites/magic-missile.png")
 
 	mm := MagicMissile{
 		spellLevel: 1,
@@ -38,6 +54,32 @@ func InitMagicMissile(p *Player) {
 		owner:            PLAYER,
 		projectileRadius: 3,
 		projectileSpeed:  500,
+		sprite:           mmSprite,
+	}
+
+	p.spells = append(p.spells, &mm)
+}
+
+func InitFireball(p *Player) {
+	sfx := rl.LoadSound("assets/sounds/magic-1.wav")
+	rl.SetSoundVolume(sfx, 0.7)
+
+	mmSprite := rl.LoadTexture("assets/sprites/Fireball.png")
+
+	mm := Fireball{
+		spellLevel: 1,
+		critChance: 0.1,
+		cooldown: Cooldown{
+			timeSinceShot: 0,
+			duration:      2.5,
+		},
+		soundEffect:      sfx,
+		textName:         "Fireball",
+		baseDamage:       10,
+		owner:            PLAYER,
+		projectileRadius: 3,
+		projectileSpeed:  500,
+		sprite:           mmSprite,
 	}
 
 	p.spells = append(p.spells, &mm)
@@ -45,6 +87,36 @@ func InitMagicMissile(p *Player) {
 
 func (m *MagicMissile) Update(dt float32) {
 	m.cooldown.timeSinceShot += dt
+}
+
+func (f *Fireball) Update(dt float32) {
+	f.cooldown.timeSinceShot += dt
+}
+
+func (f *Fireball) Shoot(startPos rl.Vector2, enemy *Enemy) {
+	if enemy == nil {
+		return
+	}
+
+	if f.cooldown.timeSinceShot >= f.cooldown.duration {
+		// pass direction to shoot as param instead of start / end pos?
+		dirToTarget := rl.Vector2Subtract(enemy.center, startPos)
+
+		proj := Projectile{
+			position:   startPos,
+			direction:  dirToTarget,
+			owner:      f.owner,
+			radius:     f.projectileRadius,
+			speed:      f.projectileSpeed,
+			critChance: f.critChance,
+			kind:       FIREBALL,
+			sprite:     f.sprite,
+		}
+
+		projectiles = append(projectiles, &proj)
+		rl.PlaySound(f.soundEffect)
+		f.cooldown.timeSinceShot = 0
+	}
 }
 
 func (m *MagicMissile) Shoot(startPos rl.Vector2, enemy *Enemy) {
@@ -64,6 +136,7 @@ func (m *MagicMissile) Shoot(startPos rl.Vector2, enemy *Enemy) {
 			speed:      m.projectileSpeed,
 			critChance: m.critChance,
 			kind:       MAGIC_MISSILE,
+			sprite:     m.sprite,
 		}
 
 		projectiles = append(projectiles, &proj)
