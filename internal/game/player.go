@@ -25,6 +25,7 @@ type Player struct {
 	level             int32
 	pickupRadius      float32
 	weapons           []Weapon
+	spells            []Spell
 	buffs             []Buff
 	levelUpSfx        rl.Sound
 	expPickupSfx      rl.Sound
@@ -90,6 +91,9 @@ func (p *Player) Shoot(enemy *Enemy) {
 		p.weapons[i].Shoot(enemy)
 	}
 
+	for i := 0; i < len(p.spells); i++ {
+		p.spells[i].Shoot(p.center, enemy)
+	}
 }
 
 func (p *Player) Update(dt float32) {
@@ -163,6 +167,14 @@ func (p *Player) Update(dt float32) {
 	for i := 0; i < len(p.weapons); i++ {
 		p.weapons[i].Update(dt, p.position)
 	}
+
+	// update all spells
+
+	for i := 0; i < len(p.spells); i++ {
+		p.spells[i].Update(dt)
+	}
+
+	// update buffs (TODO: fix the hack below)
 
 	for i := 0; i < len(p.buffs); i++ {
 		p.buffs[i].timeSinceStart += dt

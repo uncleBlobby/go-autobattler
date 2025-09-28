@@ -9,6 +9,16 @@ const (
 	ENEMY
 )
 
+type ProjectileKind int
+
+const (
+	DEFAULT ProjectileKind = iota
+	BULLET
+	MAGIC_MISSILE
+	FIREBALL
+	LIGHTNING
+)
+
 type Projectile struct {
 	position       rl.Vector2
 	direction      rl.Vector2
@@ -18,6 +28,13 @@ type Projectile struct {
 	isDead         bool
 	owner          ProjectileOwnership
 	critChance     float32
+	kind           ProjectileKind
+}
+
+func NewProjectile(k ProjectileKind) *Projectile {
+	return &Projectile{
+		kind: k,
+	}
 }
 
 func (p *Projectile) Update(dt float32) {
@@ -31,7 +48,23 @@ func (p *Projectile) Update(dt float32) {
 }
 
 func (p *Projectile) Draw() {
-	rl.DrawCircle(int32(p.position.X), int32(p.position.Y), p.radius, rl.Black)
+
+	switch p.kind {
+	case MAGIC_MISSILE:
+		rl.DrawCircle(int32(p.position.X), int32(p.position.Y), p.radius, rl.SkyBlue)
+
+	case BULLET:
+		rl.DrawCircle(int32(p.position.X), int32(p.position.Y), p.radius, rl.Black)
+
+	case LIGHTNING:
+		rl.DrawCircle(int32(p.position.X), int32(p.position.Y), p.radius, rl.Black)
+
+	case FIREBALL:
+		rl.DrawCircle(int32(p.position.X), int32(p.position.Y), p.radius, rl.Black)
+
+	default:
+		rl.DrawCircle(int32(p.position.X), int32(p.position.Y), p.radius, rl.Black)
+	}
 }
 
 func DrawAllProjectiles() {

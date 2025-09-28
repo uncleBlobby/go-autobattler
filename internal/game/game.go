@@ -51,6 +51,8 @@ func InitGame() *Game {
 	player.InitShotgunWeapon()
 	player.InitSMGWeapon()
 
+	InitMagicMissile(player)
+
 	return &Game{}
 }
 
