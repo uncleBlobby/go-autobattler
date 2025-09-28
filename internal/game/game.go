@@ -5,6 +5,7 @@ import (
 	"math"
 	"math/rand"
 
+	rg "github.com/gen2brain/raylib-go/raygui"
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
@@ -20,6 +21,7 @@ var player *Player
 
 var skellyTex rl.Texture2D
 
+var showDebugOptionsScreen bool = false
 var showLevelUpScreen bool = false
 var gameOver bool = false
 
@@ -37,7 +39,13 @@ var dbgf DebugFlags = DebugFlags{
 	enableSpells:      true,
 }
 
+func UnusedButton() {
+	rg.Button(rl.Rectangle{0, 0, 2, 2}, "hi")
+}
+
 func InitGame() *Game {
+
+	//btn := rg.Button()
 	levelUpSfx := rl.LoadSound("assets/sounds/level-up-sequence.mp3")
 	xpPickupFx := rl.LoadSound("assets/sounds/retro-coin.mp3")
 
@@ -98,18 +106,21 @@ func (g *Game) Draw(dt float32) {
 		DrawGameOverScreen()
 	}
 
+	if showDebugOptionsScreen {
+		DrawDebugOptionsScreen()
+	}
+
 	rl.EndDrawing()
 }
 
 func (g *Game) Update(dt float32) {
 
-	gameTime += dt
+	if !showLevelUpScreen && !gameOver && !showDebugOptionsScreen {
+		gameTime += dt
 
-	wave := int(gameTime / 30)
-	enemySpawnCooldown = 2.0 - (float32(wave) * 0.2)
-	enemySpawnCooldown = float32(math.Max(float64(enemySpawnCooldown), 0.2))
-
-	if !showLevelUpScreen && !gameOver {
+		wave := int(gameTime / 30)
+		enemySpawnCooldown = 2.0 - (float32(wave) * 0.2)
+		enemySpawnCooldown = float32(math.Max(float64(enemySpawnCooldown), 0.2))
 		player.Update(dt)
 
 		UpdateAllLoot(dt)
@@ -138,6 +149,10 @@ func (g *Game) Update(dt float32) {
 
 		// reset timer
 		enemySpawnTimer = 0
+	}
+
+	if rl.IsKeyReleased(rl.KeyF2) {
+		showDebugOptionsScreen = true
 	}
 }
 
@@ -219,6 +234,36 @@ func DrawLevelUpScreen() {
 	if rl.IsKeyReleased(rl.KeyBackspace) {
 		showLevelUpScreen = false
 	}
+}
+
+func DrawDebugOptionsScreen() {
+	screenColor := rl.LightGray
+	screenColor.A = uint8(128)
+	rl.DrawRectangle(50, 50, 1920-100, 1080-100, screenColor)
+
+	rl.DrawText("Debug Options", 800, 500, 24, rl.Black)
+	rl.DrawText("pick some new skills or something...", 820, 600, 20, rl.Black)
+
+	// rl.DrawRectangle(750, 900, 100, 100, rl.Orange)
+
+	if rl.IsKeyReleased(rl.KeyBackspace) || rl.IsKeyReleased(rl.KeyF3) {
+		showDebugOptionsScreen = false
+	}
+
+	weaponsOn := rg.CheckBox(rl.Rectangle{200, 200, 100, 50}, "weapons on/off", dbgf.enableWeapons)
+	rl.DrawText(fmt.Sprintf("%v", dbgf.enableWeapons), 250, 200, 12, rl.Black)
+
+	dbgf.enableWeapons = weaponsOn
+
+	spellsOn := rg.CheckBox(rl.Rectangle{200, 300, 100, 50}, "spells on/off", dbgf.enableSpells)
+	rl.DrawText(fmt.Sprintf("%v", dbgf.enableSpells), 250, 300, 12, rl.Black)
+
+	dbgf.enableSpells = spellsOn
+
+	playerDamageOn := rg.CheckBox(rl.Rectangle{200, 400, 100, 50}, "damage on/off", dbgf.allowPlayerDamage)
+	rl.DrawText(fmt.Sprintf("%v", dbgf.allowPlayerDamage), 250, 400, 12, rl.Black)
+
+	dbgf.allowPlayerDamage = playerDamageOn
 }
 
 func DrawGameOverScreen() {

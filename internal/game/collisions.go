@@ -1,7 +1,6 @@
 package game
 
 import (
-	"fmt"
 	"math/rand"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
@@ -13,12 +12,15 @@ func EnemyCollisionLoop(dt float32) {
 			// player take damage...
 
 			//fmt.Printf("enemies[i].timeSinceLastShot: %v", enemies[i].timeSinceLastShot)
-			if enemies[i].timeSinceLastShot >= enemies[i].shootCooldown {
-				fmt.Println("ENEMY DAMAGE PLAYER")
-				player.hitpoints -= 10
-				ft := CreateFloatingText(player.position, 10)
-				fcts = append(fcts, &ft)
-				enemies[i].timeSinceLastShot = 0
+
+			if dbgf.allowPlayerDamage {
+				if enemies[i].timeSinceLastShot >= enemies[i].shootCooldown {
+					//fmt.Println("ENEMY DAMAGE PLAYER")
+					player.hitpoints -= 10
+					ft := CreateFloatingText(player.position, 10)
+					fcts = append(fcts, &ft)
+					enemies[i].timeSinceLastShot = 0
+				}
 			}
 
 			// player get bumped back
