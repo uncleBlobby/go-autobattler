@@ -21,6 +21,7 @@ var player *Player
 
 var skellyTex rl.Texture2D
 var lootGemSpriteSheet rl.Texture2D
+var lightningSpriteSheet rl.Texture2D
 
 var showDebugOptionsScreen bool = false
 var showLevelUpScreen bool = false
@@ -53,6 +54,7 @@ func InitGame() *Game {
 	skellyTex = rl.LoadTexture("assets/sprites/skeleton.png")
 
 	lootGemSpriteSheet = rl.LoadTexture("assets/sprites/gem-green-ss-vert.png")
+	lightningSpriteSheet = rl.LoadTexture("assets/sprites/lightning-ss-vert.png")
 
 	rl.SetSoundVolume(levelUpSfx, 0.9)
 	rl.SetSoundVolume(xpPickupFx, 0.4)
@@ -80,6 +82,7 @@ func InitGame() *Game {
 
 	InitMagicMissile(player)
 	InitFireball(player)
+	InitChainLightning(player)
 
 	return &Game{}
 }

@@ -36,7 +36,7 @@ func (p *Player) InitBaseWeapon() {
 
 	sfx := rl.LoadSound("assets/sounds/fixed.wav")
 
-	rl.SetSoundVolume(sfx, 0.7)
+	rl.SetSoundVolume(sfx, 0.5)
 
 	b := BaseWeapon{position: p.center,
 		critChance: 0.5,
@@ -52,7 +52,7 @@ func (p *Player) InitBaseWeapon() {
 func (p *Player) InitShotgunWeapon() {
 
 	sfx := rl.LoadSound("assets/sounds/shotgun-firing.mp3")
-	rl.SetSoundVolume(sfx, 0.5)
+	rl.SetSoundVolume(sfx, 0.25)
 
 	s := Shotgun{position: p.center, critChance: 0.25, baseDamage: 5, numProjectiles: 3, cooldown: Cooldown{
 		timeSinceShot: 0,
@@ -65,7 +65,7 @@ func (p *Player) InitShotgunWeapon() {
 func (p *Player) InitSMGWeapon() {
 
 	sfx := rl.LoadSound("assets/sounds/smg-firing.mp3")
-	rl.SetSoundVolume(sfx, 0.5)
+	rl.SetSoundVolume(sfx, 0.4)
 
 	s := SMG{position: p.center, critChance: 0.1, baseDamage: 2, cooldown: Cooldown{
 		timeSinceShot: 0,

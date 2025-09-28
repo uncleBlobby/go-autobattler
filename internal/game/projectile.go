@@ -35,6 +35,8 @@ type Projectile struct {
 	critChance float32
 	kind       ProjectileKind
 	sprite     rl.Texture2D
+	isAnim     bool
+	anim       AnimatedSprite
 }
 
 func NewProjectile(k ProjectileKind) *Projectile {
@@ -44,6 +46,18 @@ func NewProjectile(k ProjectileKind) *Projectile {
 }
 
 func (p *Projectile) Update(dt float32) {
+
+	if p.isAnim {
+		p.anim.frameCounter += dt
+		if p.anim.frameCounter >= (1.0 / float32(p.anim.frameSpeed)) {
+			p.anim.frameCounter = 0
+			p.anim.currentFrame++
+			if p.anim.currentFrame >= p.anim.numFrames {
+				p.anim.currentFrame = 0
+			}
+		}
+	}
+
 	p.direction = rl.Vector2Normalize(p.direction)
 	p.position.X += (p.speed * p.direction.X) * dt
 	p.position.Y += (p.speed * p.direction.Y) * dt
@@ -51,6 +65,26 @@ func (p *Projectile) Update(dt float32) {
 	if p.IsOffScreen() {
 		p.isDead = true
 	}
+}
+
+func (p *Projectile) Clone() *Projectile {
+	proj := Projectile{
+		position:  p.position,
+		direction: p.direction,
+		// targetPosition rl.Vector2
+		damage:     p.damage,
+		speed:      p.speed,
+		radius:     p.radius,
+		isDead:     p.isDead,
+		owner:      p.owner,
+		critChance: p.critChance,
+		kind:       p.kind,
+		sprite:     p.sprite,
+		isAnim:     p.isAnim,
+		anim:       p.anim,
+	}
+
+	return &proj
 }
 
 func (p *Projectile) Draw() {
@@ -71,6 +105,15 @@ func (p *Projectile) Draw() {
 		rl.DrawCircle(int32(p.position.X), int32(p.position.Y), p.radius, rl.Black)
 
 	case LIGHTNING:
+
+		src := rl.Rectangle{X: 0, Y: float32(p.anim.currentFrame) * p.anim.spriteSize.Y, Width: p.anim.spriteSize.X, Height: p.anim.spriteSize.Y}
+		dst := rl.Rectangle{X: p.position.X, Y: p.position.Y, Width: 32, Height: 32}
+		og := rl.Vector2{X: dst.Width / 2, Y: dst.Height / 2}
+
+		angle := math.Atan2(float64(p.direction.Y), float64(p.direction.X)) * rl.Rad2deg
+		// rl.DrawTextureEx(p.sprite, p.position, float32(angle-90), 2, rl.White)
+		rl.DrawTexturePro(p.sprite, src, dst, og, float32(angle-90), rl.White)
+
 		rl.DrawCircle(int32(p.position.X), int32(p.position.Y), p.radius, rl.Black)
 
 	case FIREBALL:
