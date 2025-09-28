@@ -25,6 +25,18 @@ var gameOver bool = false
 
 type Game struct{}
 
+type DebugFlags struct {
+	allowPlayerDamage bool
+	enableWeapons     bool
+	enableSpells      bool
+}
+
+var dbgf DebugFlags = DebugFlags{
+	allowPlayerDamage: true,
+	enableWeapons:     true,
+	enableSpells:      true,
+}
+
 func InitGame() *Game {
 	levelUpSfx := rl.LoadSound("assets/sounds/level-up-sequence.mp3")
 	xpPickupFx := rl.LoadSound("assets/sounds/retro-coin.mp3")

@@ -87,13 +87,19 @@ func (p *Player) Shoot(enemy *Enemy) {
 
 	// projectiles = append(projectiles, &proj)
 
-	for i := 0; i < len(p.weapons); i++ {
-		p.weapons[i].Shoot(enemy)
+	if dbgf.enableWeapons {
+		for i := 0; i < len(p.weapons); i++ {
+			p.weapons[i].Shoot(enemy)
+		}
+
 	}
 
-	for i := 0; i < len(p.spells); i++ {
-		p.spells[i].Shoot(p.center, enemy)
+	if dbgf.enableSpells {
+		for i := 0; i < len(p.spells); i++ {
+			p.spells[i].Shoot(p.center, enemy)
+		}
 	}
+
 }
 
 func (p *Player) Update(dt float32) {
