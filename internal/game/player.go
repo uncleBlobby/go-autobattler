@@ -118,8 +118,10 @@ func (p *Player) Update(dt float32) {
 		p.speed = 300
 	}
 
-	p.position.X += (p.speed * p.direction.X) * dt
-	p.position.Y += (p.speed * p.direction.Y) * dt
+	if dbgf.allowPlayerMove {
+		p.position.X += (p.speed * p.direction.X) * dt
+		p.position.Y += (p.speed * p.direction.Y) * dt
+	}
 
 	if len(enemies) > 0 {
 

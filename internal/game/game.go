@@ -31,12 +31,14 @@ type Game struct{}
 
 type DebugFlags struct {
 	allowPlayerDamage bool
+	allowPlayerMove   bool
 	enableWeapons     bool
 	enableSpells      bool
 }
 
 var dbgf DebugFlags = DebugFlags{
 	allowPlayerDamage: true,
+	allowPlayerMove:   true,
 	enableWeapons:     true,
 	enableSpells:      true,
 }

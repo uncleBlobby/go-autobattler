@@ -35,6 +35,11 @@ func DrawDebugOptionsScreen() {
 	rl.DrawText(fmt.Sprintf("%v", dbgf.allowPlayerDamage), 250, 400, 12, rl.Black)
 
 	dbgf.allowPlayerDamage = playerDamageOn
+
+	playerMoveOn := rg.CheckBox(rl.Rectangle{X: 200, Y: 500, Width: 100, Height: 50}, "player move on/off", dbgf.allowPlayerMove)
+	rl.DrawText(fmt.Sprintf("%v", dbgf.allowPlayerMove), 250, 500, 12, rl.Black)
+
+	dbgf.allowPlayerMove = playerMoveOn
 }
 
 type DebugOptionToggle struct {

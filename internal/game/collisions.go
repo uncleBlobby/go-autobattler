@@ -25,7 +25,9 @@ func EnemyCollisionLoop(dt float32) {
 
 			// player get bumped back
 
-			player.GetKnockedBack(enemies[i], dt)
+			if dbgf.allowPlayerMove {
+				player.GetKnockedBack(enemies[i], dt)
+			}
 		}
 
 		for j := 0; j < len(enemies); j++ {
