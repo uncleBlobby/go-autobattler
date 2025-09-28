@@ -111,6 +111,7 @@ func (f *Fireball) Shoot(startPos rl.Vector2, enemy *Enemy) {
 			critChance: f.critChance,
 			kind:       FIREBALL,
 			sprite:     f.sprite,
+			damage:     f.baseDamage,
 		}
 
 		projectiles = append(projectiles, &proj)
@@ -137,6 +138,7 @@ func (m *MagicMissile) Shoot(startPos rl.Vector2, enemy *Enemy) {
 			critChance: m.critChance,
 			kind:       MAGIC_MISSILE,
 			sprite:     m.sprite,
+			damage:     m.baseDamage,
 		}
 
 		projectiles = append(projectiles, &proj)

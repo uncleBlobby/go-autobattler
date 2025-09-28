@@ -14,6 +14,8 @@ type Cooldown struct {
 type Weapon interface {
 	Shoot(enemy *Enemy)
 	Update(dt float32, position rl.Vector2)
+	ReduceCooldownDuration(amount float32)
+	AdjustBaseDamage(amount float32)
 }
 
 type BaseWeapon struct {
@@ -21,11 +23,33 @@ type BaseWeapon struct {
 	critChance  float32
 	cooldown    Cooldown
 	soundEffect rl.Sound
+	baseDamage  int
 }
 
 func (b *BaseWeapon) Update(dt float32, position rl.Vector2) {
 	b.position = position
 	b.cooldown.timeSinceShot += dt
+}
+
+func (b *BaseWeapon) ReduceCooldownDuration(amount float32) {
+	factor := 1 - amount
+	b.cooldown.duration *= factor
+
+	if b.cooldown.duration <= 0 {
+		b.cooldown.duration = 0.1
+	}
+}
+
+func (b *BaseWeapon) AdjustBaseDamage(amount float32) {
+	b.baseDamage = b.baseDamage + int(float32(b.baseDamage)*amount)
+}
+
+func (s *Shotgun) AdjustBaseDamage(amount float32) {
+	s.baseDamage = s.baseDamage + int(float32(s.baseDamage)*amount)
+}
+
+func (s *SMG) AdjustBaseDamage(amount float32) {
+	s.baseDamage = s.baseDamage + int(float32(s.baseDamage)*amount)
 }
 
 func (b *BaseWeapon) Shoot(enemy *Enemy) {
@@ -43,6 +67,7 @@ func (b *BaseWeapon) Shoot(enemy *Enemy) {
 			radius:     3,
 			speed:      500,
 			critChance: b.critChance,
+			damage:     b.baseDamage,
 		}
 
 		projectiles = append(projectiles, &proj)
@@ -59,6 +84,7 @@ type Shotgun struct {
 	cooldown       Cooldown
 	numProjectiles int
 	soundEffect    rl.Sound
+	baseDamage     int
 }
 
 type SMG struct {
@@ -70,11 +96,21 @@ type SMG struct {
 	rateOfFire          float32
 	timeSinceLastRound  float32
 	soundEffect         rl.Sound
+	baseDamage          int
 }
 
 func (s *Shotgun) Update(dt float32, position rl.Vector2) {
 	s.position = position
 	s.cooldown.timeSinceShot += dt
+}
+
+func (s *Shotgun) ReduceCooldownDuration(amount float32) {
+	factor := 1 - amount
+	s.cooldown.duration *= factor
+
+	if s.cooldown.duration <= 0 {
+		s.cooldown.duration = 0.1
+	}
 }
 
 func (s *Shotgun) Shoot(enemy *Enemy) {
@@ -105,6 +141,7 @@ func (s *Shotgun) Shoot(enemy *Enemy) {
 				radius:     3,
 				speed:      500,
 				critChance: s.critChance,
+				damage:     s.baseDamage,
 			}
 
 			projectiles = append(projectiles, &proj)
@@ -119,6 +156,15 @@ func (s *SMG) Update(dt float32, position rl.Vector2) {
 	s.position = position
 	s.cooldown.timeSinceShot += dt
 	s.timeSinceLastRound += dt
+}
+
+func (s *SMG) ReduceCooldownDuration(amount float32) {
+	factor := 1 - amount
+	s.cooldown.duration *= factor
+
+	if s.cooldown.duration <= 0 {
+		s.cooldown.duration = 0.1
+	}
 }
 
 func (s *SMG) Shoot(enemy *Enemy) {
@@ -139,6 +185,7 @@ func (s *SMG) Shoot(enemy *Enemy) {
 				radius:     3,
 				speed:      500,
 				critChance: s.critChance,
+				damage:     s.baseDamage,
 			}
 
 			projectiles = append(projectiles, &proj)

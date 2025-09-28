@@ -21,17 +21,17 @@ func DrawDebugOptionsScreen() {
 		showDebugOptionsScreen = false
 	}
 
-	weaponsOn := rg.CheckBox(rl.Rectangle{200, 200, 100, 50}, "weapons on/off", dbgf.enableWeapons)
+	weaponsOn := rg.CheckBox(rl.Rectangle{X: 200, Y: 200, Width: 100, Height: 50}, "weapons on/off", dbgf.enableWeapons)
 	rl.DrawText(fmt.Sprintf("%v", dbgf.enableWeapons), 250, 200, 12, rl.Black)
 
 	dbgf.enableWeapons = weaponsOn
 
-	spellsOn := rg.CheckBox(rl.Rectangle{200, 300, 100, 50}, "spells on/off", dbgf.enableSpells)
+	spellsOn := rg.CheckBox(rl.Rectangle{X: 200, Y: 300, Width: 100, Height: 50}, "spells on/off", dbgf.enableSpells)
 	rl.DrawText(fmt.Sprintf("%v", dbgf.enableSpells), 250, 300, 12, rl.Black)
 
 	dbgf.enableSpells = spellsOn
 
-	playerDamageOn := rg.CheckBox(rl.Rectangle{200, 400, 100, 50}, "damage on/off", dbgf.allowPlayerDamage)
+	playerDamageOn := rg.CheckBox(rl.Rectangle{X: 200, Y: 400, Width: 100, Height: 50}, "damage on/off", dbgf.allowPlayerDamage)
 	rl.DrawText(fmt.Sprintf("%v", dbgf.allowPlayerDamage), 250, 400, 12, rl.Black)
 
 	dbgf.allowPlayerDamage = playerDamageOn
@@ -49,8 +49,8 @@ func InitWeaponDebugToggle(initialOptions DebugFlags) DebugOptionToggle {
 	var weaponDebugToggle = DebugOptionToggle{
 		optionName:     "Weapons On/Off",
 		optionValue:    initialOptions.enableWeapons,
-		buttonPosition: rl.Vector2{200, 200},
-		buttonSize:     rl.Vector2{100, 50},
+		buttonPosition: rl.Vector2{X: 200, Y: 200},
+		buttonSize:     rl.Vector2{X: 100, Y: 50},
 		drawCheckbox:   rg.CheckBox,
 	}
 

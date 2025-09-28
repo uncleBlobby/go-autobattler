@@ -51,6 +51,8 @@ func CreateFloatingCRITText(startPos rl.Vector2) FloatingText {
 		velocity:      rl.Vector2{X: 0, Y: -40},
 	}
 
+	ft.color.A = uint8(126)
+
 	// randX := rand.Intn(int(startPos.X)-10, int(startPos.X)+10)
 	// randX := rand.Int()
 	randX := rand.Intn(25) - 25

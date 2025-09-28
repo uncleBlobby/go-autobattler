@@ -41,7 +41,7 @@ var dbgf DebugFlags = DebugFlags{
 }
 
 func UnusedButton() {
-	rg.Button(rl.Rectangle{0, 0, 2, 2}, "hi")
+	rg.Button(rl.Rectangle{X: 0, Y: 0, Width: 2, Height: 2}, "hi")
 }
 
 func InitGame() *Game {
@@ -248,5 +248,5 @@ func DrawGameOverScreen() {
 }
 
 func UNUSED(a any) {
-	return
+
 }

@@ -63,8 +63,6 @@ func DrawAllEnemies() {
 
 func SpawnEnemy(player *Player) *Enemy {
 
-	
-
 	enemy := Enemy{
 		Actor: Actor{
 			position: PositionJustOutsideScreen(),
@@ -73,7 +71,7 @@ func SpawnEnemy(player *Player) *Enemy {
 		size:          16,
 		player:        player,
 		shootCooldown: 2,
-		hitpoints:     10,
+		hitpoints:     int32(10 + ((float32(player.level-1) * 0.5) * 5)),
 		sprite:        skellyTex,
 	}
 

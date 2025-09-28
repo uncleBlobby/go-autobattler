@@ -57,14 +57,14 @@ func ProjectileCollisionLoop(dt float32) {
 
 					// random chance for a CRIT (bullet doesn't die, but instead penetrates)..
 
-					if rand.Float32() < projectiles[i].critChance {
+					if rand.Float32() > projectiles[i].critChance {
 						projectiles[i].isDead = true
 					} else {
 						critText := CreateFloatingCRITText(enemies[j].position)
 						fcts = append(fcts, &critText)
 					}
 
-					enemies[j].hitpoints -= 10
+					enemies[j].hitpoints -= int32(projectiles[i].damage)
 
 					if enemies[j].hitpoints <= 0 {
 						enemies[j].isDead = true
@@ -78,7 +78,7 @@ func ProjectileCollisionLoop(dt float32) {
 
 					}
 
-					newFt := CreateFloatingText(enemies[j].position, 10)
+					newFt := CreateFloatingText(enemies[j].position, projectiles[i].damage)
 					fcts = append(fcts, &newFt)
 				}
 			}

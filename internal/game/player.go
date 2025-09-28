@@ -16,20 +16,20 @@ type Buff struct {
 
 type Player struct {
 	Actor
-	shootCooldown     float32
-	timeSinceLastShot float32
-	size              int32
-	hitpoints         int32
-	exp               int32
-	expToLevel        int32
-	expToPrevLevel    int32
-	level             int32
-	pickupRadius      float32
-	weapons           []Weapon
-	spells            []Spell
-	buffs             []Buff
-	levelUpSfx        rl.Sound
-	expPickupSfx      rl.Sound
+	shootCooldown float32
+	// timeSinceLastShot float32
+	size           int32
+	hitpoints      int32
+	exp            int32
+	expToLevel     int32
+	expToPrevLevel int32
+	level          int32
+	pickupRadius   float32
+	weapons        []Weapon
+	spells         []Spell
+	buffs          []Buff
+	levelUpSfx     rl.Sound
+	expPickupSfx   rl.Sound
 }
 
 func (p *Player) InitBaseWeapon() {
@@ -38,10 +38,13 @@ func (p *Player) InitBaseWeapon() {
 
 	rl.SetSoundVolume(sfx, 0.7)
 
-	b := BaseWeapon{position: p.center, critChance: 0.5, cooldown: Cooldown{
-		timeSinceShot: 0,
-		duration:      2,
-	},
+	b := BaseWeapon{position: p.center,
+		critChance: 0.5,
+		baseDamage: 10,
+		cooldown: Cooldown{
+			timeSinceShot: 0,
+			duration:      2,
+		},
 		soundEffect: sfx}
 	p.weapons = append(p.weapons, &b)
 }
@@ -51,7 +54,7 @@ func (p *Player) InitShotgunWeapon() {
 	sfx := rl.LoadSound("assets/sounds/shotgun-firing.mp3")
 	rl.SetSoundVolume(sfx, 0.5)
 
-	s := Shotgun{position: p.center, critChance: 0.25, numProjectiles: 3, cooldown: Cooldown{
+	s := Shotgun{position: p.center, critChance: 0.25, baseDamage: 5, numProjectiles: 3, cooldown: Cooldown{
 		timeSinceShot: 0,
 		duration:      5,
 	},
@@ -64,7 +67,7 @@ func (p *Player) InitSMGWeapon() {
 	sfx := rl.LoadSound("assets/sounds/smg-firing.mp3")
 	rl.SetSoundVolume(sfx, 0.5)
 
-	s := SMG{position: p.center, critChance: 0.1, cooldown: Cooldown{
+	s := SMG{position: p.center, critChance: 0.1, baseDamage: 2, cooldown: Cooldown{
 		timeSinceShot: 0,
 		duration:      3,
 	}, magazineSize: 10, shotsFiredThisBurst: 0, rateOfFire: 0.01, timeSinceLastRound: 0, soundEffect: sfx}
@@ -72,21 +75,6 @@ func (p *Player) InitSMGWeapon() {
 }
 
 func (p *Player) Shoot(enemy *Enemy) {
-	// if enemy == nil {
-	// 	return
-	// }
-
-	// dirToTarget := rl.Vector2Subtract(enemy.position, p.position)
-
-	// proj := Projectile{
-	// 	position:  p.center,
-	// 	direction: dirToTarget,
-	// 	owner:     PLAYER,
-	// 	radius:    3,
-	// 	speed:     500,
-	// }
-
-	// projectiles = append(projectiles, &proj)
 
 	if dbgf.enableWeapons {
 		for i := 0; i < len(p.weapons); i++ {
@@ -157,17 +145,7 @@ func (p *Player) Update(dt float32) {
 
 	// check level up
 
-	if p.exp > p.expToLevel {
-		p.level += 1
-		p.expToPrevLevel = p.expToLevel
-		p.expToLevel = p.level * p.expToLevel
-		p.shootCooldown = 1 - (float32(p.level-1) * 0.15)
-		//p.shootCooldown = float32(math.Min(float64(p.shootCooldown)))
-		p.shootCooldown = float32(math.Max(float64(p.shootCooldown), 0.1))
-		p.pickupRadius += 10
-		showLevelUpScreen = true
-		rl.PlaySound(p.levelUpSfx)
-	}
+	p.LevelUpRoutine()
 
 	// update all weapons
 
@@ -198,17 +176,32 @@ func (p *Player) Update(dt float32) {
 	}
 }
 
+func (p *Player) LevelUpRoutine() {
+	if p.exp > p.expToLevel {
+		p.level += 1
+		p.expToPrevLevel = p.expToLevel
+		p.expToLevel = p.level * p.expToLevel
+		p.shootCooldown = 1 - (float32(p.level-1) * 0.15)
+		//p.shootCooldown = float32(math.Min(float64(p.shootCooldown)))
+		p.shootCooldown = float32(math.Max(float64(p.shootCooldown), 0.1))
+		p.pickupRadius *= 1.1
+
+		for i := 0; i < len(p.weapons); i++ {
+			p.weapons[i].ReduceCooldownDuration(0.05)
+			p.weapons[i].AdjustBaseDamage(0.5)
+		}
+
+		showLevelUpScreen = true
+		rl.PlaySound(p.levelUpSfx)
+	}
+}
+
 func (p *Player) Draw() {
 	rl.DrawRectangle(int32(p.position.X), int32(p.position.Y), p.size, p.size, rl.Blue)
 
 	// health bar
 
 	rl.DrawRectangle(10, 900, 20, 100, rl.Red)
-	//rl.DrawRectangle(12, 902, 16, 96, rl.RayWhite)
-
-	// health bar  fill
-
-	// fill percentage == (player.hitpoints / player.maxHitPoints)
 
 	healthFillPerc := float32((float32(p.hitpoints) / float32(100)))
 

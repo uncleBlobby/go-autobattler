@@ -24,16 +24,17 @@ const (
 )
 
 type Projectile struct {
-	position       rl.Vector2
-	direction      rl.Vector2
-	targetPosition rl.Vector2
-	speed          float32
-	radius         float32
-	isDead         bool
-	owner          ProjectileOwnership
-	critChance     float32
-	kind           ProjectileKind
-	sprite         rl.Texture2D
+	position  rl.Vector2
+	direction rl.Vector2
+	// targetPosition rl.Vector2
+	damage     int
+	speed      float32
+	radius     float32
+	isDead     bool
+	owner      ProjectileOwnership
+	critChance float32
+	kind       ProjectileKind
+	sprite     rl.Texture2D
 }
 
 func NewProjectile(k ProjectileKind) *Projectile {
@@ -57,9 +58,9 @@ func (p *Projectile) Draw() {
 	switch p.kind {
 	case MAGIC_MISSILE:
 
-		src := rl.Rectangle{0, 0, 16, 16}
-		dst := rl.Rectangle{p.position.X, p.position.Y, 32, 32}
-		og := rl.Vector2{32 / 2, 32 / 2}
+		src := rl.Rectangle{X: 0, Y: 0, Width: 16, Height: 16}
+		dst := rl.Rectangle{X: p.position.X, Y: p.position.Y, Width: 32, Height: 32}
+		og := rl.Vector2{X: 32 / 2, Y: 32 / 2}
 
 		angle := math.Atan2(float64(p.direction.Y), float64(p.direction.X)) * rl.Rad2deg
 		// rl.DrawTextureEx(p.sprite, p.position, float32(angle-90), 2, rl.White)
@@ -73,9 +74,9 @@ func (p *Projectile) Draw() {
 		rl.DrawCircle(int32(p.position.X), int32(p.position.Y), p.radius, rl.Black)
 
 	case FIREBALL:
-		src := rl.Rectangle{0, 0, 16, 16}
-		dst := rl.Rectangle{p.position.X, p.position.Y, 32, 32}
-		og := rl.Vector2{32 / 2, 32 / 2}
+		src := rl.Rectangle{X: 0, Y: 0, Width: 16, Height: 16}
+		dst := rl.Rectangle{X: p.position.X, Y: p.position.Y, Width: 32, Height: 32}
+		og := rl.Vector2{X: 32 / 2, Y: 32 / 2}
 
 		angle := math.Atan2(float64(p.direction.Y), float64(p.direction.X)) * rl.Rad2deg
 		// rl.DrawTextureEx(p.sprite, p.position, float32(angle-90), 2, rl.White)

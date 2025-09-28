@@ -38,7 +38,7 @@ func CreateLootExpItem(spawnPos rl.Vector2, expValue int32) Loot {
 
 	anim := AnimatedSprite{
 		sprite:       lootGemSpriteSheet,
-		spriteSize:   rl.Vector2{16, 16},
+		spriteSize:   rl.Vector2{X: 16, Y: 16},
 		numFrames:    7,
 		frameSpeed:   7,
 		currentFrame: 0,
@@ -82,9 +82,9 @@ func DrawAllLoot() {
 		if !loot[i].collected {
 			// rl.DrawCircleV(loot[i].position, loot[i].radius, loot[i].color)
 
-			src := rl.Rectangle{0, float32(loot[i].anim.currentFrame) * loot[i].anim.spriteSize.Y, loot[i].anim.spriteSize.X, loot[i].anim.spriteSize.Y}
-			dst := rl.Rectangle{loot[i].position.X, loot[i].position.Y, 32, 32}
-			og := rl.Vector2{dst.Width / 2, dst.Height / 2}
+			src := rl.Rectangle{X: 0, Y: float32(loot[i].anim.currentFrame) * loot[i].anim.spriteSize.Y, Width: loot[i].anim.spriteSize.X, Height: loot[i].anim.spriteSize.Y}
+			dst := rl.Rectangle{X: loot[i].position.X, Y: loot[i].position.Y, Width: 32, Height: 32}
+			og := rl.Vector2{X: dst.Width / 2, Y: dst.Height / 2}
 
 			// rl.DrawTextureEx(loot[i].sprite, loot[i].position, 0, 1, rl.White)
 			rl.DrawTexturePro(loot[i].anim.sprite, src, dst, og, 0, rl.White)
