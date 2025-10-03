@@ -87,3 +87,13 @@ func (e *Enemy) GetKnockedBack(e2 *Enemy, dt float32) {
 	e.position.X += (float32(knockForce) * knockDirection.X) * dt
 	e.position.Y += (float32(knockForce) * knockDirection.Y) * dt
 }
+
+func (e *Enemy) GetKnockedBackProjectile(p *Projectile, dt float32) {
+	knockDirection := rl.Vector2Subtract(e.position, p.position)
+	knockDirection = rl.Vector2Normalize(knockDirection)
+
+	knockForce := 1500
+
+	e.position.X += (float32(knockForce) * knockDirection.X) * dt
+	e.position.Y += (float32(knockForce) * knockDirection.Y) * dt
+}

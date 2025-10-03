@@ -68,6 +68,11 @@ func ProjectileCollisionLoop(dt float32) {
 
 					enemies[j].hitpoints -= int32(projectiles[i].damage)
 
+					// add  knockback to enemy on projectile hit
+					// TODO: variadic knockback depending on projectile type, damage, level, etc?
+
+					enemies[j].GetKnockedBackProjectile(projectiles[i], dt)
+
 					// when we collide with enemy, IF attack is lightning, spawn two other projectiles to next two nearest enemies...
 
 					// find two nearest enemies to collision point...
