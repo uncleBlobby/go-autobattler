@@ -95,6 +95,7 @@ func (g *Game) Draw(dt float32) {
 
 	rl.DrawText(fmt.Sprintf("FPS:\t\t\t%d", rl.GetFPS()), 5, 5, 16, rl.Black)
 	rl.DrawText(fmt.Sprintf("PLAYER_HP:\t%d", player.hitpoints), 5, 25, 16, rl.Black)
+	rl.DrawText(fmt.Sprintf("ENTITY COUNT:\t%d", len(fcts)+len(enemies)+len(projectiles)+len(loot)+len(magnets)+1), 5, 40, 16, rl.Black)
 
 	DrawAllLoot()
 
@@ -190,6 +191,12 @@ func CleanUpDeadEntities() {
 	for i := 0; i < len(magnets); i++ {
 		if magnets[i].collected {
 			magnets = append(magnets[:i], magnets[i+1:]...)
+		}
+	}
+
+	for i := 0; i < len(fcts); i++ {
+		if fcts[i].lifetime == 0 {
+			fcts = append(fcts[:i], fcts[i+1:]...)
 		}
 	}
 }

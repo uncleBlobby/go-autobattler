@@ -1,11 +1,18 @@
 package main
 
 import (
+	_ "net/http/pprof"
+
 	rl "github.com/gen2brain/raylib-go/raylib"
 	"github.com/uncleblobby/raylib-go-test/internal/game"
 )
 
 func main() {
+
+	// go func() {
+	// 	log.Println(http.ListenAndServe("localhost:6060", nil))
+	// }()
+
 	rl.InitAudioDevice()
 	rl.SetMasterVolume(1.0)
 
